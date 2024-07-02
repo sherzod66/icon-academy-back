@@ -15,51 +15,55 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly mailService: MailerService,
   ) {}
-  async auth(createAuthDto: CreateAuthDto) {
+  async login(createAuthDto: CreateAuthDto) {
     const findUser = await this.prisma.users.findUnique({
       where: { email: createAuthDto.email },
     });
-    if (findUser) {
-      const verifyPassword = await verify(
-        findUser.password,
-        createAuthDto.password,
-      );
-      if (!verifyPassword)
-        throw new BadRequestException('A user with such email exists!');
+    if (!findUser) throw new BadRequestException('User not found');
+    const verifyPassword = await verify(
+      findUser.password,
+      createAuthDto.password,
+    );
+    if (!verifyPassword) throw new BadRequestException('Invalid password');
 
-      const randomKey = this.randomKey();
-      const hashRandom = await hash(`${randomKey}`);
+    const randomKey = this.randomKey();
+    const hashRandom = await hash(`${randomKey}`);
 
-      await this.prisma.users.update({
-        where: { id: findUser.id },
-        data: {
-          activationKey: hashRandom,
-        },
-      });
-      await this.activationMail(createAuthDto.email, randomKey);
-      return {
-        message: 'Activate code sent!',
-        id: findUser.id,
-      };
-    } else {
-      const randomKey = this.randomKey();
-      const hashRandom = await hash(`${randomKey}`);
-      const pass = await hash(createAuthDto.password);
-      const createUser = await this.prisma.users.create({
-        data: {
-          activationKey: hashRandom,
-          email: createAuthDto.email,
-          password: pass,
-        },
-      });
-      await this.activationMail(createAuthDto.email, randomKey);
-      return {
-        message: 'Activate code sent!',
-        id: createUser.id,
-      };
-    }
+    await this.prisma.users.update({
+      where: { id: findUser.id },
+      data: {
+        activationKey: hashRandom,
+      },
+    });
+    await this.activationMail(createAuthDto.email, randomKey);
+    return {
+      message: 'Activate code sent!',
+      id: findUser.id,
+    };
   }
 
+  async register(createAuthDto: CreateAuthDto) {
+    const findUser = await this.prisma.users.findUnique({
+      where: { email: createAuthDto.email },
+    });
+    if (findUser)
+      throw new BadRequestException('A user with such email exists');
+    const randomKey = this.randomKey();
+    const hashRandom = await hash(`${randomKey}`);
+    const pass = await hash(createAuthDto.password);
+    const createUser = await this.prisma.users.create({
+      data: {
+        activationKey: hashRandom,
+        email: createAuthDto.email,
+        password: pass,
+      },
+    });
+    await this.activationMail(createAuthDto.email, randomKey);
+    return {
+      message: 'Activate code sent!',
+      id: createUser.id,
+    };
+  }
   async confirmation(dto: ConfirmationAuthDto) {
     const find = await this.prisma.users.findUnique({
       where: { id: dto.userId },

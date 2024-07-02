@@ -14,11 +14,17 @@ import { ConfirmationAuthDto } from './dto/confirmation-aith.dto';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post()
+  @Post('login')
   @UsePipes(new ValidationPipe())
   @HttpCode(200)
-  auth(@Body() dto: CreateAuthDto) {
-    return this.authService.auth(dto);
+  login(@Body() dto: CreateAuthDto) {
+    return this.authService.login(dto);
+  }
+  @Post('register')
+  @UsePipes(new ValidationPipe())
+  @HttpCode(200)
+  register(@Body() dto: CreateAuthDto) {
+    return this.authService.register(dto);
   }
 
   @Post('confirmation')

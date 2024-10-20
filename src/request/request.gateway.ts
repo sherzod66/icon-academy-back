@@ -58,6 +58,13 @@ export class RequestGateway
     client.emit('get-notifications', getNotification);
   }
 
+  @SubscribeMessage('onVisitors')
+  async getVisitors(@ConnectedSocket() client: Socket) {
+    const userId = await this.checkUser(client);
+    const getNotification = await this.requestService.getStatistics();
+    client.emit('get-visitors', getNotification);
+  }
+
   @SubscribeMessage('visitors')
   async visitors(
     @MessageBody() dto: StatisticDto,

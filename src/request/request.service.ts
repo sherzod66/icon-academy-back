@@ -15,6 +15,7 @@ export class RequestService {
         fullName: dto.fullName,
         phoneNumber: dto.phoneNumber,
         email: dto.email,
+        ref: dto.ref,
       },
     });
     return { success: true };
@@ -49,7 +50,6 @@ export class RequestService {
   }
 
   async statistic(dto: StatisticDto) {
-    console.log('Refer:', dto.referer);
     const findDay = await this.prisma.visitors.findUnique({
       where: { id: dto.date },
       include: { referer: true },
@@ -72,6 +72,13 @@ export class RequestService {
       });
     }
     return { success: true };
+  }
+
+  async getStatistics() {
+    const statistics = await this.prisma.visitors.findMany({
+      include: { referer: true },
+    });
+    return statistics;
   }
 
   remove(id: number) {

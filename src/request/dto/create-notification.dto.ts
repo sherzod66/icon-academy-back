@@ -7,4 +7,6 @@ export class CreateNotificationDto {
   fullName: string;
   @IsEmail()
   email: string;
+  @IsString()
+  ref: string;
 }

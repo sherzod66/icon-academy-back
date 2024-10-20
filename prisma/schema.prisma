@@ -34,6 +34,7 @@ model Notifications {
   phoneNumber String   @map("phone_number")
   fullName    String   @map("full_name")
   made        Boolean  @default(false)
+  ref         String   @default("")
 }
 
 model Visitors {
